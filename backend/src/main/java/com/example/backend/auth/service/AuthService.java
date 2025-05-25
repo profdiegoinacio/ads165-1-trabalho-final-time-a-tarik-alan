@@ -46,6 +46,9 @@ public class AuthService {
                     .body("Erro: credenciais inválidas!");
         }
         String token = jwtUtil.generateToken(u.getEmail());
-        return ResponseEntity.ok(Map.of("token", token));
+        return ResponseEntity.ok(Map.of(
+                "token", token,
+                "userId", u.getId()
+        ));
     }
 }

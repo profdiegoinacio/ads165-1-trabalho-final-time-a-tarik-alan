@@ -63,7 +63,7 @@ export default function EditProfessorPage() {
         const text = await res.text()
         setMessage(text)
         setIsSuccess(res.ok)
-        if (res.ok) setTimeout(() => router.push('/professores'), 1000)
+        if (res.ok) setTimeout(() => router.push('/add_professor'), 1000)
     }
 
     if (loading) return <p>Carregando...</p>

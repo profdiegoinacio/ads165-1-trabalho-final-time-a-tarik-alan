@@ -25,6 +25,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Link href="/aulas" className="text-neutral-700 hover:text-primary">
                     Aulas
                 </Link>
+                <Link href="/add_professor" className="text-neutral-700 hover:text-primary">
+                    Adicionar Professor
+                </Link>
             </nav>
         </header>
         <main className="flex-1 container mx-auto p-6">

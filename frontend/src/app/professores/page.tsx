@@ -1,45 +1,34 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
+import React, { useState, useEffect } from 'react'
+import ProfessorCard, { Professor } from '../../../components/ProfessorCard'
+import ScheduleModal from '../../../components/ScheduleModal'
 
-type Professor = {
-    id: number
-    nome: string
-    materia: string
-    valorHora: number
-    disponibilidade: string
-}
-
-export default function ProfessoresPage() {
+export default function ProfessoresCardsPage() {
     const [professores, setProfessores] = useState<Professor[]>([])
     const [loading, setLoading] = useState(true)
-    const [error, setError]     = useState<string | null>(null)
+    const [error, setError] = useState<string | null>(null)
 
-    // estados de filtro
-    const [fMateria, setFMateria]             = useState('')
-    const [fMinValor, setFMinValor]           = useState('')
-    const [fMaxValor, setFMaxValor]           = useState('')
+    const [searchTerm, setSearchTerm] = useState('')
+    const [fMateria, setFMateria] = useState('')
     const [fDisponibilidade, setFDisponibilidade] = useState('')
 
-    // busca dados com filtros
+    const [showModal, setShowModal] = useState(false)
+    const [selectedProfessor, setSelectedProfessor] = useState<Professor | null>(null)
+
+    const [message, setMessage] = useState('')
+    const [isSuccess, setIsSuccess] = useState<boolean | null>(null)
+
     const fetchProfessores = async () => {
         setLoading(true)
         setError(null)
         const token = localStorage.getItem('token') || ''
-        // monta query string apenas com filtros preenchidos
-        const params = new URLSearchParams()
-        if (fMateria) params.append('materia', fMateria)
-        if (fMinValor) params.append('minValor', fMinValor)
-        if (fMaxValor) params.append('maxValor', fMaxValor)
-        if (fDisponibilidade) params.append('disponibilidade', fDisponibilidade)
-
         try {
-            const res = await fetch(
-                `http://localhost:8080/api/professores?${params.toString()}`,
-                { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' }
-            )
-            if (!res.ok) throw new Error('Falha ao buscar professores')
+            const res = await fetch('http://localhost:8080/api/professores', {
+                headers: { Authorization: `Bearer ${token}` },
+                cache: 'no-store'
+            })
+            if (!res.ok) throw new Error('Erro ao carregar professores')
             setProfessores(await res.json())
         } catch (err: any) {
             setError(err.message)
@@ -50,111 +39,117 @@ export default function ProfessoresPage() {
 
     useEffect(() => { fetchProfessores() }, [])
 
-    // handler do form de filtros
-    const handleFilterSubmit = (e: React.FormEvent) => {
-        e.preventDefault()
-        fetchProfessores()
+    const handleSchedule = (prof: Professor) => {
+        setSelectedProfessor(prof)
+        setShowModal(true)
+        setMessage('')
+        setIsSuccess(null)
     }
 
-    const handleDelete = async (id: number) => {
-        if (!confirm('Tem certeza que deseja excluir este professor?')) return
+    const handleCloseModal = () => {
+        setShowModal(false)
+        setSelectedProfessor(null)
+    }
+
+    const handleConfirmSchedule = async (data: { date: string; time: string; modalidade: string }) => {
+        if (!selectedProfessor) return
         const token = localStorage.getItem('token') || ''
-        const res = await fetch(`http://localhost:8080/api/professores/${id}`, {
-            method: 'DELETE',
-            headers: { Authorization: `Bearer ${token}` },
-        })
-        if (res.status === 204) {
-            setProfessores(prev => prev.filter(p => p.id !== id))
-        } else {
-            alert('Erro ao excluir professor')
+        const payload = {
+            alunoId: parseInt(localStorage.getItem('userId') || '0'),
+            professorId: selectedProfessor.id,
+            dataHora: `${data.date}T${data.time}`,
+            modalidade: data.modalidade
+        }
+        try {
+            const res = await fetch('http://localhost:8080/api/aulas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            })
+            const text = await res.text()
+            setMessage(text)
+            setIsSuccess(res.ok)
+            if (res.ok) setTimeout(() => handleCloseModal(), 1000)
+        } catch (err: any) {
+            setMessage('Erro ao agendar aula')
+            setIsSuccess(false)
         }
     }
 
-    if (loading) return <p>Carregando...</p>
-    if (error)   return <p className="text-red-600">Erro: {error}</p>
+    const materias = Array.from(new Set(professores.map(p => p.materia)))
+    const disponibilidades = Array.from(new Set(professores.map(p => p.disponibilidade)))
+
+    const filtered = professores.filter(p => {
+        const matchesSearch =
+            p.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            p.materia.toLowerCase().includes(searchTerm.toLowerCase())
+        const matchesMateria = !fMateria || p.materia === fMateria
+        const matchesDisp = !fDisponibilidade || p.disponibilidade === fDisponibilidade
+        return matchesSearch && matchesMateria && matchesDisp
+    })
+
+    if (loading) return <p>Carregando professores...</p>
+    if (error) return <p className="text-red-600">Erro: {error}</p>
 
     return (
-        <div className="max-w-4xl mx-auto">
-            <form onSubmit={handleFilterSubmit} className="bg-white p-4 rounded mb-6 shadow space-y-4">
-                <h2 className="font-bold">Filtros</h2>
-                <div className="grid grid-cols-2 gap-4">
+        <div className="max-w-6xl mx-auto px-4 py-8">
+            <h1 className="text-3xl font-bold mb-6">Professores</h1>
+            <div className="flex gap-6">
+                <aside className="w-1/4 bg-white p-6 rounded-xl shadow space-y-4">
                     <input
-                        placeholder="Matéria"
+                        type="text"
+                        placeholder="Pesquisar por nome ou matéria"
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                        className="w-full border rounded-lg p-2"
+                    />
+                    <select
                         value={fMateria}
                         onChange={e => setFMateria(e.target.value)}
-                        className="p-2 border rounded"
-                    />
-                    <input
-                        placeholder="Valor mínimo"
-                        type="number"
-                        value={fMinValor}
-                        onChange={e => setFMinValor(e.target.value)}
-                        className="p-2 border rounded"
-                    />
-                    <input
-                        placeholder="Valor máximo"
-                        type="number"
-                        value={fMaxValor}
-                        onChange={e => setFMaxValor(e.target.value)}
-                        className="p-2 border rounded"
-                    />
-                    <input
-                        placeholder="Disponibilidade"
+                        className="w-full border rounded-lg p-2"
+                    >
+                        <option value="">Todas Matérias</option>
+                        {materias.map(m => (
+                            <option key={m} value={m}>{m}</option>
+                        ))}
+                    </select>
+                    <select
                         value={fDisponibilidade}
                         onChange={e => setFDisponibilidade(e.target.value)}
-                        className="p-2 border rounded"
-                    />
-                </div>
-                <button
-                    type="submit"
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-                >
-                    Aplicar Filtros
-                </button>
-            </form>
-            <div className="flex justify-end mb-4">
-                <Link href="/professores/new">
-                    <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
-                        Novo Professor
-                    </button>
-                </Link>
+                        className="w-full border rounded-lg p-2"
+                    >
+                        <option value="">Todas Disponibilidades</option>
+                        {disponibilidades.map(d => (
+                            <option key={d} value={d}>{d}</option>
+                        ))}
+                    </select>
+                </aside>
+                <main className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filtered.length === 0 ? (
+                        <p className="text-gray-600">Nenhum professor encontrado.</p>
+                    ) : (
+                        filtered.map(p => (
+                            <ProfessorCard
+                                key={p.id}
+                                professor={p}
+                                onSchedule={handleSchedule}
+                            />
+                        ))
+                    )}
+                </main>
             </div>
-            <h1 className="text-3xl font-bold mb-6">Lista de Professores</h1>
-
-            {professores.length === 0 ? (
-                <p className="text-gray-600">Nenhum professor cadastrado.</p>
-            ) : (
-                <table className="w-full bg-white shadow rounded-lg overflow-hidden">
-                    <thead className="bg-gray-100">
-                    <tr>
-                        <th className="px-4 py-2">ID</th>
-                        <th className="px-4 py-2">Nome</th>
-                        <th className="px-4 py-2">Matéria</th>
-                        <th className="px-4 py-2">Valor/Hora</th>
-                        <th className="px-4 py-2">Disponibilidade</th>
-                        <th className="px-4 py-2">Ações</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {professores.map((p) => (
-                        <tr key={p.id} className="border-t hover:bg-gray-50">
-                            <td className="px-4 py-2">{p.id}</td>
-                            <td className="px-4 py-2">{p.nome}</td>
-                            <td className="px-4 py-2">{p.materia}</td>
-                            <td className="px-4 py-2">{p.valorHora}</td>
-                            <td className="px-4 py-2">{p.disponibilidade}</td>
-                            <td className="px-4 py-2">
-                                <Link href={`/professores/${p.id}/edit`} className="text-blue-600 hover:underline mr-4">
-                                    Editar
-                                </Link>
-                                <button onClick={() => handleDelete(p.id)} className="text-red-600 hover:underline">
-                                    Excluir
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>
+            {message && (
+                <p className={`mt-4 text-center ${isSuccess ? 'text-green-600' : 'text-red-600'}`}>{message}</p>
+            )}
+            {showModal && selectedProfessor && (
+                <ScheduleModal
+                    professor={selectedProfessor}
+                    onClose={handleCloseModal}
+                    onSubmit={handleConfirmSchedule}
+                />
             )}
         </div>
     )
