@@ -1,4 +1,3 @@
-// frontend/src/app/register/page.tsx
 'use client'
 
 import { useState } from 'react'
@@ -9,16 +8,18 @@ export default function RegisterPage() {
     const [nome, setNome]     = useState('')
     const [email, setEmail]   = useState('')
     const [senha, setSenha]   = useState('')
+    const [role, setRole]     = useState('aluno') // estado para tipo de usuário
     const [msg, setMsg]       = useState('')
     const [isSuccess, setOk]  = useState<boolean|null>(null)
     const router = useRouter()
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        const payload = { nome, email, senha, role }
         const res = await fetch('http://localhost:8080/api/auth/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nome, email, senha }),
+            body: JSON.stringify(payload),
         })
         const text = await res.text()
         setMsg(text)
@@ -52,6 +53,17 @@ export default function RegisterPage() {
                         onChange={e => setSenha(e.target.value)}
                         required
                     />
+                    <div>
+                        <label className="block text-sm font-medium mb-1">Você é:</label>
+                        <select
+                            value={role}
+                            onChange={e => setRole(e.target.value)}
+                            className="w-full border rounded-lg p-2"
+                        >
+                            <option value="aluno">Aluno</option>
+                            <option value="professor">Professor</option>
+                        </select>
+                    </div>
                     <Button type="submit" className="w-full">
                         Registrar
                     </Button>

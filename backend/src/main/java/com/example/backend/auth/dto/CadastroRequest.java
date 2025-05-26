@@ -4,6 +4,7 @@ public class CadastroRequest {
     private String nome;
     private String email;
     private String senha;
+    private String role;
     // getters e setters
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
@@ -11,4 +12,6 @@ public class CadastroRequest {
     public void setEmail(String email) { this.email = email; }
     public String getSenha() { return senha; }
     public void setSenha(String senha) { this.senha = senha; }
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 }

@@ -32,7 +32,8 @@ public class AuthService {
         Usuario u = new Usuario(
                 req.getNome(),
                 req.getEmail(),
-                passwordEncoder.encode(req.getSenha())
+                passwordEncoder.encode(req.getSenha()),
+                req.getRole().toUpperCase()   // ex.: “ALUNO” ou “PROFESSOR”
         );
         usuarioRepository.save(u);
         return ResponseEntity.ok(Map.of("message", "Usuário registrado com sucesso!"));
