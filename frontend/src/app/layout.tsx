@@ -22,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Link href="/professores" className="text-neutral-700 hover:text-primary">
                     Professores
                 </Link>
-                <Link href="/aulas" className="text-neutral-700 hover:text-primary">
+                <Link href="/aluno/aulas" className="text-neutral-700 hover:text-primary">
                     Aulas
                 </Link>
                 <Link href="/add_professor" className="text-neutral-700 hover:text-primary">

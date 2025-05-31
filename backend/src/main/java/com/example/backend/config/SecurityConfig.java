@@ -1,62 +1,86 @@
 package com.example.backend.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.cors.CorsConfigurationSource;
-
-import java.util.List;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true) // Habilita @PreAuthorize
 public class SecurityConfig {
 
-    private final JwtUtil jwtUtil;
-
-    public SecurityConfig(JwtUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
-    }
-
-    // 1) Defina uma fonte de configuração CORS que permitirá suas origens, métodos e cabeçalhos
-    @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000"));
-        config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // aplica a todas as rotas
-        source.registerCorsConfiguration("/**", config);
-        return source;
-    }
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // 2) habilita o processamento de CORS *antes* do resto do fluxo de segurança
-                .cors().and()
-
-                // 3) desabilita CSRF (não estamos usando formulários do Spring)
+                // 1) Desabilita CSRF (útil para APIs stateless com JWT)
                 .csrf(csrf -> csrf.disable())
-
-                // 4) libera h2-console e auth sem autenticação, tudo o resto exige JWT válido
+                // 2) Habilita CORS (configurado no bean abaixo)
+                .cors(cors -> {})
+                // 3) Define permissões de acesso para cada rota:
                 .authorizeHttpRequests(auth -> auth
+                        // Liberar endpoints de login e registro
                         .requestMatchers("/h2-console/**", "/api/auth/**").permitAll()
+
+                        // Somente ALUNO pode agendar aula
+                        .requestMatchers(HttpMethod.POST, "/api/aulas").hasRole("ALUNO")
+                        // Somente ALUNO pode ver lista de professores disponíveis
+                        .requestMatchers(HttpMethod.GET, "/api/professores/disponiveis").hasRole("ALUNO")
+
+                        // Somente PROFESSOR pode listar as próprias aulas
+                        .requestMatchers(HttpMethod.GET, "/api/aulas/professor").hasRole("PROFESSOR")
+                        // Somente PROFESSOR pode criar, atualizar e excluir professor
+                        .requestMatchers("/api/professores/**").hasRole("PROFESSOR")
+
+                        // Qualquer usuário autenticado (ALUNO ou PROFESSOR) pode listar TODOS os professores:
+                        .requestMatchers(HttpMethod.GET, "/api/professores").authenticated()
+
+                        // Qualquer outra rota requer autenticação
                         .anyRequest().authenticated()
                 )
-
-                // 5) permite o console H2 rodar em iframe
+                // 4) Não criar sessão (API stateless com JWT):
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // 5) Permite a console H2 rodar em iframe (caso use H2)
                 .headers(headers -> headers.frameOptions().disable())
-
-                // 6) injeta o filtro de JWT antes do filtro padrão de autenticação
-                .addFilterBefore(new JwtAuthenticationFilter(jwtUtil),
-                        org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
+                // 6) Adiciona nosso filtro JWT antes do filtro padrão
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    // Bean para permitir requisições CORS do frontend (http://localhost:3000)
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/api/**")
+                        .allowedOrigins("http://localhost:3000")
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowedHeaders("*")
+                        .allowCredentials(true);
+            }
+        };
+    }
+
+    // Expõe AuthenticationManager para que possa ser injetado se necessário
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authConfig
+    ) throws Exception {
+        return authConfig.getAuthenticationManager();
     }
 }

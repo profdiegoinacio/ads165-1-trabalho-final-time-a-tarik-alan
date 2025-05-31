@@ -28,14 +28,15 @@ public class ProfessorService {
     }
 
     public Professor atualizar(Long id, Professor p) {
-        Professor existente = repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Professor não encontrado para id: " + id));
-
+        Optional<Professor> existenteOpt = repo.findById(id);
+        if (existenteOpt.isEmpty()) {
+            throw new RuntimeException("Professor não encontrado");
+        }
+        Professor existente = existenteOpt.get();
         existente.setNome(p.getNome());
         existente.setMateria(p.getMateria());
         existente.setValorHora(p.getValorHora());
         existente.setDisponibilidade(p.getDisponibilidade());
-
         return repo.save(existente);
     }
 
@@ -43,6 +44,14 @@ public class ProfessorService {
         repo.deleteById(id);
     }
 
+    /*** MÉTODO NOVO: lista apenas professores cuja disponibilidade seja “DISPONIVEL” ***/
+    public List<Professor> listarDisponiveis() {
+        return repo.findByDisponibilidadeIgnoreCase("DISPONIVEL");
+    }
+
+    /**
+     * Busca com filtros opcionais (mantivemos seu código original)
+     */
     public List<Professor> buscarComFiltro(
             String materia,
             Double minValor,

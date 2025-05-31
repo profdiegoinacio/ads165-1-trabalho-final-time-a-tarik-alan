@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
 import java.util.Map;
 
 @Service
@@ -19,24 +20,32 @@ public class AuthService {
     private UsuarioRepository usuarioRepository;
 
     @Autowired
-    private JwtUtil jwtUtil;
+    private BCryptPasswordEncoder passwordEncoder;
 
-    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    @Autowired
+    private JwtUtil jwtUtil;
 
     public ResponseEntity<?> register(CadastroRequest req) {
         if (usuarioRepository.existsByEmail(req.getEmail())) {
-            return ResponseEntity
-                    .badRequest()
-                    .body("Erro: E-mail já cadastrado!");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Erro: e-mail já cadastrado!");
         }
-        Usuario u = new Usuario(
-                req.getNome(),
-                req.getEmail(),
-                passwordEncoder.encode(req.getSenha()),
-                req.getRole().toUpperCase()   // ex.: “ALUNO” ou “PROFESSOR”
-        );
+        // Cria usuário com role (ALUNO ou PROFESSOR)
+        Usuario u = new Usuario();
+        u.setNome(req.getNome());
+        u.setEmail(req.getEmail());
+        u.setSenha(passwordEncoder.encode(req.getSenha()));
+
+        // Define role em MAIÚSCULAS
+        String requestedRole = req.getRole().toUpperCase();
+        if ("PROFESSOR".equals(requestedRole)) {
+            u.setRole("PROFESSOR");
+        } else {
+            u.setRole("ALUNO");
+        }
+
         usuarioRepository.save(u);
-        return ResponseEntity.ok(Map.of("message", "Usuário registrado com sucesso!"));
+        return ResponseEntity.ok("Usuário cadastrado com sucesso!");
     }
 
     public ResponseEntity<?> login(LoginRequest req) {
@@ -49,7 +58,8 @@ public class AuthService {
         String token = jwtUtil.generateToken(u.getEmail());
         return ResponseEntity.ok(Map.of(
                 "token", token,
-                "userId", u.getId()
+                "userId", u.getId(),
+                "role", u.getRole()
         ));
     }
 }

@@ -21,26 +21,49 @@ public class Aula {
 
     private LocalDateTime dataHora;
 
-    private String modalidade;
+    private String modalidade; // “online” ou “presencial”
 
-    public Aula() {}
-
-    public Aula(Usuario aluno, Professor professor,
-                LocalDateTime dataHora, String modalidade) {
-        this.aluno       = aluno;
-        this.professor   = professor;
-        this.dataHora    = dataHora;
-        this.modalidade  = modalidade;
+    public Aula() {
     }
 
-    public Long getId() { return id; }
-    public Usuario getAluno() { return aluno; }
-    public void setAluno(Usuario aluno) { this.aluno = aluno; }
-    public Professor getProfessor() { return professor; }
-    public void setProfessor(Professor professor) { this.professor = professor; }
-    public LocalDateTime getDataHora() { return dataHora; }
-    public void setDataHora(LocalDateTime dataHora) { this.dataHora = dataHora; }
-    public String getModalidade() { return modalidade; }
-    public void setModalidade(String modalidade) { this.modalidade = modalidade; }
-}
+    public Aula(Usuario aluno, Professor professor, LocalDateTime dataHora, String modalidade) {
+        this.aluno = aluno;
+        this.professor = professor;
+        this.dataHora = dataHora;
+        this.modalidade = modalidade;
+    }
 
+    // getters e setters
+    public Long getId() {
+        return id;
+    }
+    // Não sobrescrevemos setId
+
+    public Usuario getAluno() {
+        return aluno;
+    }
+    public void setAluno(Usuario aluno) {
+        this.aluno = aluno;
+    }
+
+    public Professor getProfessor() {
+        return professor;
+    }
+    public void setProfessor(Professor professor) {
+        this.professor = professor;
+    }
+
+    public LocalDateTime getDataHora() {
+        return dataHora;
+    }
+    public void setDataHora(LocalDateTime dataHora) {
+        this.dataHora = dataHora;
+    }
+
+    public String getModalidade() {
+        return modalidade;
+    }
+    public void setModalidade(String modalidade) {
+        this.modalidade = modalidade;
+    }
+}

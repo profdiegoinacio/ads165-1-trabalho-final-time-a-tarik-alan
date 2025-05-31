@@ -23,9 +23,10 @@ export default function LoginPage() {
         if (!res.ok) {
             setMsg(textOrJson); setIsSuccess(false); return
         }
-        const { token, userId } = JSON.parse(textOrJson)
+        const { token, userId, role } = JSON.parse(textOrJson)
         localStorage.setItem('token', token)
         localStorage.setItem('userId', userId)
+        localStorage.setItem('role', role);
         setMsg('Login bem-sucedido!'); setIsSuccess(true)
         setTimeout(() => router.push('/users'), 800)
     }

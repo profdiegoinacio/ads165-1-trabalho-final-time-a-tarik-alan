@@ -9,9 +9,9 @@ import com.example.backend.repository.UsuarioRepository;
 import com.example.backend.repository.ProfessorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class AulaService {
@@ -27,15 +27,11 @@ public class AulaService {
         return aulaRepo.findAll();
     }
 
-    public Optional<Aula> buscarPorId(Long id) {
-        return aulaRepo.findById(id);
-    }
-
-    public List<Aula> listarPorAluno(Long alunoId) {
+    public List<Aula> buscarPorAluno(Long alunoId) {
         return aulaRepo.findByAlunoId(alunoId);
     }
 
-    public List<Aula> listarPorProfessor(Long professorId) {
+    public List<Aula> buscarPorProfessor(Long professorId) {
         return aulaRepo.findByProfessorId(professorId);
     }
 
