@@ -26,22 +26,21 @@ export default function ProfessoresCardsPage() {
     // Busca inicial dos professores (sem filtros)
     useEffect(() => {
         const token = localStorage.getItem('token') || ''
-        fetch('http://localhost:8080/api/professores/disponiveis', {
-            headers: { Authorization: `Bearer ${token}` },
-            cache: 'no-store',
-        })
-            .then(res => {
+        fetch('http://localhost:8080/api/professores/disponiveis', { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' })
+            .then(async res => {
                 if (!res.ok) throw new Error('Falha ao carregar professores.')
-                return res.json()
+                const txt = await res.text();
+                console.log('JSON bruto do servidor:', txt);
+                return JSON.parse(txt); // ou return res.json()
             })
-            .then((data: Professor[]) => {
-                setProfessores(data)
-                setLoading(false)
+            .then(lista => {
+                setProfessores(lista);
+                setLoading(false);
             })
             .catch(err => {
-                setError(err.message)
-                setLoading(false)
-            })
+                setError(err.message);
+                setLoading(false);
+            });
     }, [])
 
     // Função para abrir modal ao clicar em “Agendar”

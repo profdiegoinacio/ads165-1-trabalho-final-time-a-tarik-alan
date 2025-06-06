@@ -1,9 +1,17 @@
 package com.example.backend.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
+/**
+ * Entidade Professor (tabela "professores").
+ *
+ * Agora, por padrão, qualquer Professor criado terá disponibilidade = "INDISPONIVEL".
+ */
 @Entity
 @Table(name = "professores")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Professor {
 
     @Id
@@ -14,28 +22,43 @@ public class Professor {
     private String materia;
     private Double valorHora;
 
-    // Exemplos possíveis de disponibilidade: “DISPONIVEL” ou “INDISPONIVEL”
-    private String disponibilidade = "DISPONIVEL";
+    // Alterado de "DISPONIVEL" para "INDISPONIVEL" como valor padrão
+    private String disponibilidade = "INDISPONIVEL";
+
+    /**
+     * Lado Owning do relacionamento One-to-One com Usuario.
+     * Jackson ignora este campo para evitar recursão/deserialização de proxy.
+     */
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id", unique = true, nullable = false)
+    @JsonBackReference
+    private Usuario usuario;
 
     public Professor() {
     }
 
-    public Professor(String nome, String materia, Double valorHora, String disponibilidade) {
+    public Professor(String nome, String materia, Double valorHora, String disponibilidade, Usuario usuario) {
         this.nome = nome;
         this.materia = materia;
         this.valorHora = valorHora;
         this.disponibilidade = disponibilidade;
+        this.usuario = usuario;
     }
 
-    // getters e setters
+    // ===== Getters e Setters =====
+
     public Long getId() {
         return id;
     }
-    // Não sobrescrevemos setId
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getNome() {
         return nome;
     }
+
     public void setNome(String nome) {
         this.nome = nome;
     }
@@ -43,6 +66,7 @@ public class Professor {
     public String getMateria() {
         return materia;
     }
+
     public void setMateria(String materia) {
         this.materia = materia;
     }
@@ -50,6 +74,7 @@ public class Professor {
     public Double getValorHora() {
         return valorHora;
     }
+
     public void setValorHora(Double valorHora) {
         this.valorHora = valorHora;
     }
@@ -57,7 +82,16 @@ public class Professor {
     public String getDisponibilidade() {
         return disponibilidade;
     }
+
     public void setDisponibilidade(String disponibilidade) {
         this.disponibilidade = disponibilidade;
+    }
+
+    public Usuario getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
     }
 }

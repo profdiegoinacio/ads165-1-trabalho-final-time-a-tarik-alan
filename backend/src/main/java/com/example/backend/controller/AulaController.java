@@ -1,89 +1,120 @@
 package com.example.backend.controller;
 
 import com.example.backend.domain.Aula;
+import com.example.backend.domain.Professor;
 import com.example.backend.domain.Usuario;
-import com.example.backend.dto.AgendamentoRequest;
+import com.example.backend.repository.ProfessorRepository;
 import com.example.backend.repository.UsuarioRepository;
 import com.example.backend.service.AulaService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/aulas")
 public class AulaController {
 
     @Autowired
-    private AulaService service;
+    private AulaService aulaService;
 
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private ProfessorRepository professorRepository;
+
     /**
-     * ALUNO agenda uma aula:
-     * Recebe AgendamentoRequest { alunoId, professorId, dataHora, modalidade }.
-     * O token no header determina quem é o aluno (email) e definimos o alunoId no front ou validamos aqui.
+     * POST /api/aulas
+     *
+     * JSON esperado no corpo:
+     * {
+     *   "alunoId": 5,
+     *   "professorId": 3,
+     *   "dataHora": "2025-06-15T14:30:00",
+     *   "modalidade": "PRESENCIAL"
+     * }
      */
     @PostMapping
     @PreAuthorize("hasRole('ALUNO')")
-    public ResponseEntity<?> criar(
-            @RequestBody AgendamentoRequest req,
-            Authentication authentication
-    ) {
-        // Validação adicional: podemos garantir que req.getAlunoId() corresponde ao usuário logado:
-        String emailLogado = authentication.getName();
-        Usuario aluno = usuarioRepository.findByEmail(emailLogado);
-        if (aluno == null || !aluno.getId().equals(req.getAlunoId())) {
-            return ResponseEntity.status(403).body("Aluno inválido ou não corresponde ao token.");
+    public ResponseEntity<Aula> agendarAula(@Valid @RequestBody AulaRequestBody body) {
+        Optional<Usuario> optAluno = usuarioRepository.findById(body.getAlunoId());
+        Optional<Professor> optProfessor = professorRepository.findById(body.getProfessorId());
+
+        if (!optAluno.isPresent() || !optProfessor.isPresent()) {
+            return ResponseEntity.badRequest().build();
         }
 
-        Aula aula = service.criar(req);
-        return ResponseEntity.ok(aula);
+        Usuario aluno = optAluno.get();
+        Professor professor = optProfessor.get();
+
+        Aula novaAula = new Aula();
+        novaAula.setAluno(aluno);
+        novaAula.setProfessor(professor);
+        novaAula.setDataHora(LocalDateTime.parse(body.getDataHora()));
+        novaAula.setModalidade(body.getModalidade());
+
+        Aula salva = aulaService.agendarAula(novaAula);
+        URI uri = URI.create("/api/aulas/" + salva.getId());
+        return ResponseEntity.created(uri).body(salva);
     }
 
     /**
-     * PROFESSOR vê todas as aulas agendadas para ele:
-     * Usa token do professor (Authentication) para obter email e, então, o ID.
+     * GET /api/aulas/aluno
+     * Retorna todas as aulas onde o aluno_id = ID do usuário que está logado.
+     */
+    @GetMapping("/aluno")
+    @PreAuthorize("hasRole('ALUNO')")
+    public ResponseEntity<List<Aula>> listarAulasDoAluno(Authentication authentication) {
+        // authentication.getName() = e-mail do usuario
+        String email = authentication.getName();
+        Usuario u = usuarioRepository.findByEmail(email);
+        if (u == null) {
+            return ResponseEntity.status(401).build();
+        }
+        List<Aula> lista = aulaService.buscarAulasPorAlunoId(u.getId());
+        return ResponseEntity.ok(lista);
+    }
+
+    /**
+     * GET /api/aulas/professor
+     * Retorna todas as aulas onde o professor_id = ID do professor vinculado ao usuário que está logado.
      */
     @GetMapping("/professor")
     @PreAuthorize("hasRole('PROFESSOR')")
     public ResponseEntity<List<Aula>> listarAulasDoProfessor(Authentication authentication) {
-        String emailProfLogado = authentication.getName();
-        Usuario prof = usuarioRepository.findByEmail(emailProfLogado);
-        if (prof == null) {
-            return ResponseEntity.status(404).build();
+        String email = authentication.getName();
+        Usuario u = usuarioRepository.findByEmail(email);
+        Optional<Professor> optP = professorRepository.findByUsuarioId(u.getId());
+        if (!optP.isPresent()) {
+            return ResponseEntity.notFound().build();
         }
-        List<Aula> aulas = service.buscarPorProfessor(prof.getId());
-        return ResponseEntity.ok(aulas);
+        Professor p = optP.get();
+        List<Aula> lista = aulaService.buscarAulasPorProfessorId(p.getId());
+        return ResponseEntity.ok(lista);
     }
 
-    /**
-     * Deletar uma aula (opcional):
-     * Você pode decidir que só o professor consiga deletar suas aulas, ou ambos (ALUNO pode cancelar).
-     * Aqui, como exemplo, permitimos só PROFESSOR:
-     */
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('PROFESSOR')")
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        service.deletar(id);
-        return ResponseEntity.noContent().build();
-    }
+    // DTO interno para receber o JSON do POST /api/aulas
+    public static class AulaRequestBody {
+        private Long alunoId;
+        private Long professorId;
+        private String dataHora;   // ex.: "2025-06-15T14:30:00"
+        private String modalidade; // "ONLINE" ou "PRESENCIAL"
 
-    // --- NOVO: ALUNO vê suas próprias aulas ---
-    @GetMapping("/aluno")
-    @PreAuthorize("hasRole('ALUNO')")
-    public ResponseEntity<List<Aula>> listarAulasDoAluno(Authentication authentication) {
-        // Extrai e-mail do usuário logado via token
-        String emailAlunoLogado = authentication.getName();
-        Usuario aluno = usuarioRepository.findByEmail(emailAlunoLogado);
-        if (aluno == null) {
-            return ResponseEntity.status(404).build();
-        }
-        List<Aula> aulas = service.buscarPorAluno(aluno.getId());
-        return ResponseEntity.ok(aulas);
+        public Long getAlunoId() { return alunoId; }
+        public void setAlunoId(Long alunoId) { this.alunoId = alunoId; }
+        public Long getProfessorId() { return professorId; }
+        public void setProfessorId(Long professorId) { this.professorId = professorId; }
+        public String getDataHora() { return dataHora; }
+        public void setDataHora(String dataHora) { this.dataHora = dataHora; }
+        public String getModalidade() { return modalidade; }
+        public void setModalidade(String modalidade) { this.modalidade = modalidade; }
     }
 }

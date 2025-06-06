@@ -32,16 +32,17 @@ public class SecurityConfig {
                 .cors(cors -> {})
                 // 3) Define permissões de acesso para cada rota:
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.POST, "/api/aulas").hasRole("ALUNO")
+                        .requestMatchers(HttpMethod.GET,  "/api/aulas/aluno").hasRole("ALUNO")
+                        .requestMatchers(HttpMethod.GET,  "/api/aulas/professor").hasRole("PROFESSOR")
                         // Liberar endpoints de login e registro
                         .requestMatchers("/h2-console/**", "/api/auth/**").permitAll()
 
-                        // Somente ALUNO pode agendar aula
-                        .requestMatchers(HttpMethod.POST, "/api/aulas").hasRole("ALUNO")
+
                         // Somente ALUNO pode ver lista de professores disponíveis
                         .requestMatchers(HttpMethod.GET, "/api/professores/disponiveis").hasRole("ALUNO")
 
-                        // Somente PROFESSOR pode listar as próprias aulas
-                        .requestMatchers(HttpMethod.GET, "/api/aulas/professor").hasRole("PROFESSOR")
+
                         // Somente PROFESSOR pode criar, atualizar e excluir professor
                         .requestMatchers("/api/professores/**").hasRole("PROFESSOR")
 
