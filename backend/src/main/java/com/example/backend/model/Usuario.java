@@ -1,11 +1,6 @@
 package com.example.backend.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Column;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
 import jakarta.persistence.Entity;
@@ -39,10 +34,15 @@ public class Usuario {
     @Column(nullable = false)
     private String senha;
 
-    public Usuario(String nome, String email, String senha) {
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PerfilUsuario perfil;
+
+    public Usuario(String nome, String email, String senha, PerfilUsuario perfil) {
         this.nome = nome;
         this.email = email;
         this.senha = senha;
+        this.perfil = perfil;
     }
 
 }

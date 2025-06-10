@@ -5,6 +5,7 @@ import com.example.backend.dto.CadastroResponse;
 import com.example.backend.dto.LoginRequest;
 import com.example.backend.dto.LoginResponse;
 import com.example.backend.model.ErrorResponse;
+import com.example.backend.model.PerfilUsuario;
 import com.example.backend.model.Usuario;
 import com.example.backend.repository.UsuarioRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -21,21 +22,29 @@ public class AuthService {
     private UsuarioRepository usuarioRepository;
 
 
-    public ResponseEntity<?> register(CadastroRequest cadastroRequest) {
-        // Verifica se o e-mail já está cadastrado
-//        if(usuarioRepository.findByEmail(cadastroRequest.getEmail()) != null)
-        if (usuarioRepository.existsByEmail(cadastroRequest.getEmail())) {
-            log.warn("WARN - Email de usuario enviado ja existe no banco de dados - {}", cadastroRequest.getEmail());
-            return ResponseEntity
-                    .badRequest()
+        public ResponseEntity<?> register(CadastroRequest cadastroRequest) {
+            // Verifica se o e-mail já está cadastrado
+    //        if(usuarioRepository.findByEmail(cadastroRequest.getEmail()) != null)
+            if (usuarioRepository.existsByEmail(cadastroRequest.getEmail())) {
+                log.warn("WARN - Email de usuario enviado ja existe no banco de dados - {}", cadastroRequest.getEmail());
+                return ResponseEntity
+                        .badRequest()
                     .body(new ErrorResponse("Erro: E-mail já cadastrado!"));
         }
+
+
+            PerfilUsuario perfil = cadastroRequest.getPerfil();
+
+            if (perfil == null) {
+                return ResponseEntity.badRequest().body(new ErrorResponse("Perfil inválido. Use ALUNO ou PROFESSOR."));
+            }
 
         // Cria um novo usuário
         Usuario usuario = new Usuario(
                 cadastroRequest.getNome(),
                 cadastroRequest.getEmail(),
-                cadastroRequest.getSenha()
+                cadastroRequest.getSenha(),
+                perfil
         );
 
         // Salva o usuário no banco de dados

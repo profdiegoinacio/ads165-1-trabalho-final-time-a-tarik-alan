@@ -8,6 +8,7 @@ export default function Home() {
   const [nome, setNome] = useState("");
   const [emailCadastro, setEmailCadastro] = useState("");
   const [senhaCadastro, setSenhaCadastro] = useState("");
+  const [perfilCadastro, setPerfilCadastro] = useState("ALUNO"); // Estado para o perfil, com valor padrão
   const [mensagemCadastro, setMensagemCadastro] = useState("");
 
   // Login
@@ -23,13 +24,20 @@ export default function Home() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ nome, email: emailCadastro, senha: senhaCadastro }),
+        // Inclua o perfil no corpo da requisição
+        body: JSON.stringify({
+          nome,
+          email: emailCadastro,
+          senha: senhaCadastro,
+          perfil: perfilCadastro, // Enviando o perfil
+        }),
       });
       if (response.ok) {
         setMensagemCadastro("Usuário cadastrado com sucesso!");
         setNome("");
         setEmailCadastro("");
         setSenhaCadastro("");
+        setPerfilCadastro("ALUNO"); // Resetar para o padrão após o cadastro
       } else {
         const erro = await response.json();
         setMensagemCadastro(erro.message || "Erro ao cadastrar.");
@@ -105,6 +113,17 @@ export default function Home() {
                 className="border p-2 rounded"
                 required
             />
+            {/* NOVO CAMPO DE SELEÇÃO PARA O PERFIL */}
+            <select
+                value={perfilCadastro}
+                onChange={(e) => setPerfilCadastro(e.target.value)}
+                className="border p-2 rounded"
+                required
+            >
+              <option value="ALUNO">Aluno</option>
+              <option value="PROFESSOR">Professor</option>
+            </select>
+
             <button type="submit" className="bg-green-500 text-white p-2 rounded hover:bg-green-600">
               Cadastrar
             </button>
@@ -151,4 +170,3 @@ export default function Home() {
       </div>
   );
 }
-
