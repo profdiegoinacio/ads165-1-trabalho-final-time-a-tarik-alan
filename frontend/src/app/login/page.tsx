@@ -1,79 +1,101 @@
 'use client'
-
-import React, { useState } from 'react'
+import React, { useState, FormEvent } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
     const router = useRouter()
     const [email, setEmail] = useState('')
     const [senha, setSenha] = useState('')
+    const [remember, setRemember] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    const handleSubmit = async (evt: React.FormEvent) => {
-        evt.preventDefault()
+    const handleSubmit = async (e: FormEvent) => {
+        e.preventDefault()
         try {
             const res = await fetch('http://localhost:8080/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, senha }), // supondo que o DTO seja { email, senha }
+                body: JSON.stringify({ email, senha }),
             })
-
             if (!res.ok) {
                 const txt = await res.text()
                 throw new Error(txt)
             }
-
             const data = await res.json()
-            // data = { token: "...", userId: 5, role: "PROFESSOR" } (por exemplo)
             localStorage.setItem('token', data.token)
             localStorage.setItem('userId', data.userId.toString())
             localStorage.setItem('role', data.role)
-
-            // Redireciona ao dashboard ou lista de professores
-            router.push('/dashboard') // ou onde quiser
+            router.push('/dashboard')
         } catch (err: any) {
             setError(err.message)
         }
     }
 
     return (
-        <div className="max-w-sm mx-auto p-4">
-            <h1 className="text-2xl font-bold mb-4">Login</h1>
-            {error && <p className="text-red-600 mb-2">{error}</p>}
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                    <label htmlFor="email" className="block mb-1">
-                        E-mail
-                    </label>
-                    <input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        className="w-full border rounded p-2"
-                    />
-                </div>
-                <div>
-                    <label htmlFor="senha" className="block mb-1">
-                        Senha
-                    </label>
-                    <input
-                        id="senha"
-                        type="password"
-                        value={senha}
-                        onChange={(e) => setSenha(e.target.value)}
-                        required
-                        className="w-full border rounded p-2"
-                    />
-                </div>
-                <button
-                    type="submit"
-                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                >
-                    Entrar
-                </button>
-            </form>
+        <div className="min-h-screen flex items-center justify-center bg-gray-100 relative">
+            {/* Logo no canto superior esquerdo */}
+            <div className="logo">
+
+
+            </div>
+
+            <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg">
+                <h2 className="text-3xl font-bold mb-6 text-gray-800 text-center">LOGIN</h2>
+                {error && <p className="text-red-600 mb-4 text-center">{error}</p>}
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    <div>
+                        <input
+                            type="email"
+                            name="username"
+                            placeholder="E-mail"
+                            value={email}
+                            onChange={e => setEmail(e.target.value)}
+                            required
+                            className="w-full border-b-2 border-gray-300 focus:border-blue-500 outline-none py-2 text-gray-700 placeholder-gray-400"
+                        />
+                    </div>
+
+                    <div>
+                        <input
+                            type="password"
+                            name="pass"
+                            placeholder="Senha"
+                            value={senha}
+                            onChange={e => setSenha(e.target.value)}
+                            required
+                            className="w-full border-b-2 border-gray-300 focus:border-blue-500 outline-none py-2 text-gray-700 placeholder-gray-400"
+                        />
+                    </div>
+
+                    <div className="flex items-center justify-between text-sm text-gray-600">
+                        <label className="flex items-center">
+                            <input
+                                type="checkbox"
+                                checked={remember}
+                                onChange={e => setRemember(e.target.checked)}
+                                className="mr-2"
+                            />
+                            Lembrar-me
+                        </label>
+                        <a href="#" className="hover:underline">Esqueceu?</a>
+                    </div>
+
+                    <button
+                        type="submit"
+                        className="w-full bg-blue-600 text-white py-2 rounded-full font-semibold hover:bg-blue-700 transition"
+                    >
+                        Entrar
+                    </button>
+
+                    <p className="mt-4 text-center text-sm text-gray-600">
+                        Ainda não tem conta?{' '}
+                        <a href="/register" className="text-blue-600 hover:underline">
+                            Criar conta
+                        </a>
+                    </p>
+                </form>
+            </div>
         </div>
     )
 }
