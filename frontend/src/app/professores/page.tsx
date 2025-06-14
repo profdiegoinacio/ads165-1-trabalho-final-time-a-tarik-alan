@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import ProfessorCard, { Professor } from '../../../components/ProfessorCard'
-import ScheduleModal from '../../../components/ScheduleModal'
+import ProfessorCard, { Professor } from '../../components/ProfessorCard'
+import ScheduleModal from '../../components/ScheduleModal'
 
 export default function ProfessoresCardsPage() {
     // Estados principais

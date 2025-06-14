@@ -80,7 +80,8 @@ public class AuthService {
         return ResponseEntity.ok(Map.of(
                 "token", token,
                 "userId", u.getId(),
-                "role", u.getRole()
+                "role", u.getRole(),
+                "userName", u.getNome()
         ));
     }
 }

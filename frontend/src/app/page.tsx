@@ -1,5 +1,5 @@
 
-import { Button, Input, Card } from '../../components'
+import { Button, Input, Card } from '../components'
 
 export default function Home() {
   return (

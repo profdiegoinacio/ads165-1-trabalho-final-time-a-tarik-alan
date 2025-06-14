@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, Input, Button } from '../../../components'
+import { Card, Input, Button } from '../../components'
 
 export default function RegisterPage() {
     const [nome, setNome]     = useState('')
