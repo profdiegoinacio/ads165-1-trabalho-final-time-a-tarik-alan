@@ -1,10 +1,10 @@
 // hooks/useUserData.ts
 import { useState, useEffect } from 'react'
-import type { UserData } from '../types'
+import {UseUserDataReturn} from '../types'
 
-export const useUserData = (): UserData => {
+export const useUserData = (): UseUserDataReturn => {
     const [role, setRole] = useState<string | null>(null)
-    const [userId, setUserId] = useState<number | null>(null)
+    const [userId, setUserId] = useState<string | null>(null)
     const [token, setToken] = useState<string | null>(null)
     const [userName, setUserName] = useState<string>('')
 
@@ -16,7 +16,7 @@ export const useUserData = (): UserData => {
             const storedUserName = localStorage.getItem('userName') || 'Usuário'
 
             setRole(storedRole)
-            setUserId(storedUserId ? parseInt(storedUserId) : null)
+            setUserId(storedUserId ? storedUserId: null)
             setToken(storedToken)
             setUserName(storedUserName)
         }
