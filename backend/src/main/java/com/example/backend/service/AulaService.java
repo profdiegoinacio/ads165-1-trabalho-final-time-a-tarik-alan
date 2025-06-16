@@ -1,3 +1,4 @@
+// backend/src/main/java/com/example/backend/service/AulaService.java
 package com.example.backend.service;
 
 import com.example.backend.domain.Aula;
@@ -7,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AulaService {
@@ -24,8 +26,21 @@ public class AulaService {
         return repository.findByAlunoId(alunoId);
     }
 
+    @Transactional(readOnly = true)
+    public Optional<Aula> buscarPorId(Long id) {
+        return repository.findById(id);
+    }
+
     @Transactional
     public Aula agendarAula(Aula aula) {
         return repository.save(aula);
+    }
+
+    @Transactional
+    public void cancelarAula(Long id) {
+        if (!repository.existsById(id)) {
+            throw new RuntimeException("Aula não encontrada com ID: " + id);
+        }
+        repository.deleteById(id);
     }
 }

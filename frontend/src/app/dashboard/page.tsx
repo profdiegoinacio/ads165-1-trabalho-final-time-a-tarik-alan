@@ -1,4 +1,4 @@
-// pages/dashboard.tsx - VERSÃO ATUALIZADA COM PROFILESECTION
+// frontend/src/app/dashboard/page.tsx - Seção das Aulas Marcadas Atualizada
 'use client'
 
 import React, { useState } from 'react'
@@ -10,7 +10,6 @@ import {
     Clock,
     Video,
     MapPin,
-    UserCheck,
     ChevronRight,
     User
 } from 'lucide-react'
@@ -26,7 +25,8 @@ import Header from '../../components/Header'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import EmptyState from '../../components/EmptyState'
 import StatCard from '../../components/StatCard'
-import ProfileSection from '../../components/ProfileSection' // 👈 ADICIONAR ESTA LINHA
+import ProfileSection from '../../components/ProfileSection'
+import AulaCard from '../../components/AulaCard'
 
 // Imports dos tipos
 import type { MenuId, Professor, Aula } from '../../types'
@@ -60,6 +60,11 @@ const Dashboard: React.FC = () => {
     const handleAgendarAula = (professor: Professor): void => {
         setSelectedProfessor(professor)
         setShowModal(true)
+    }
+
+    // 👈 NOVA FUNÇÃO PARA CANCELAMENTO
+    const handleCancelSuccess = (aulaId: number): void => {
+        setAulas(prev => prev.filter(aula => aula.id !== aulaId))
     }
 
     const handleScheduleSubmit = async (dataHora: string, modalidade: string): Promise<void> => {
@@ -135,171 +140,82 @@ const Dashboard: React.FC = () => {
                                     {role === 'ALUNO' ? 'Sempre seja otimista em seus estudos!' : 'Inspire seus alunos hoje!'}
                                 </p>
                             </div>
-                            <div className="absolute right-6 top-1/2 transform -translate-y-1/2">
-                                <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
-                                    {role === 'ALUNO' ?
-                                        <BookOpen className="w-10 h-10 text-white" /> :
-                                        <UserCheck className="w-10 h-10 text-white" />
-                                    }
-                                </div>
-                            </div>
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-8 translate-x-8"></div>
+                            <div className="absolute bottom-0 right-8 w-16 h-16 bg-white/10 rounded-full translate-y-4"></div>
                         </div>
 
                         <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <div className="lg:col-span-2 space-y-6">
-                                {/* Estatísticas */}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Stats Cards - Altura fixa */}
+                            <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="h-42"> {/* 👈 ALTURA FIXA */}
                                     <StatCard
-                                        icon={BookOpen}
-                                        value={aulas.length}
                                         label={role === 'ALUNO' ? 'Aulas Agendadas' : 'Aulas Marcadas'}
-                                    />
-                                    {role === 'ALUNO' && (
-                                        <StatCard
-                                            icon={DollarSign}
-                                            value={`R$ ${totalGasto.toFixed(2)}`}
-                                            label="Total Investido"
-                                            color="green"
-                                        />
-                                    )}
-                                    <StatCard
-                                        icon={Users}
-                                        value={role === 'ALUNO' ? professores.length : aulas.length}
-                                        label={role === 'ALUNO' ? 'Professores Disponíveis' : 'Alunos Atendidos'}
+                                        value={aulas.length.toString()}
+                                        icon={BookOpen}
+                                        color="blue"
                                     />
                                 </div>
-
-                                {/* Professores/Próximas Aulas */}
-                                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h3 className="font-semibold text-gray-800">
-                                            {role === 'ALUNO' ? 'Professores Disponíveis' : 'Próximas Aulas'}
-                                        </h3>
-                                        <button
-                                            onClick={() => setActiveMenu(role === 'ALUNO' ? 'professors' : 'classes')}
-                                            className="text-blue-600 text-sm hover:underline flex items-center"
-                                        >
-                                            Ver todos <ChevronRight className="w-4 h-4 ml-1" />
-                                        </button>
-                                    </div>
-
-                                    {role === 'ALUNO' ? (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            {professores.slice(0, 4).map((professor) => (
-                                                <div key={professor.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                                                    <div className="flex items-start justify-between mb-3">
-                                                        <div>
-                                                            <h4 className="font-medium text-gray-800">{professor.nome}</h4>
-                                                            <p className="text-sm text-gray-500">{professor.materia || 'Matéria não definida'}</p>
-                                                        </div>
-                                                        <p className="text-sm font-medium text-green-600">
-                                                            R$ {professor.valorHora?.toFixed(2) || 'N/A'}/h
-                                                        </p>
-                                                    </div>
-                                                    <button
-                                                        onClick={() => handleAgendarAula(professor)}
-                                                        className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                                                    >
-                                                        Agendar Aula
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-3">
-                                            {proximasAulas.length === 0 ? (
-                                                <p className="text-gray-500 text-center py-4">Nenhuma aula agendada</p>
-                                            ) : (
-                                                proximasAulas.map((aula) => (
-                                                    <div key={aula.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                                                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                                            {aula.modalidade === 'online' ?
-                                                                <Video className="w-5 h-5 text-blue-600" /> :
-                                                                <MapPin className="w-5 h-5 text-blue-600" />
-                                                            }
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            <p className="text-sm font-medium text-gray-800">{aula.aluno.nome}</p>
-                                                            <p className="text-xs text-gray-500">
-                                                                {new Date(aula.dataHora).toLocaleString('pt-BR', {
-                                                                    day: '2-digit',
-                                                                    month: '2-digit',
-                                                                    hour: '2-digit',
-                                                                    minute: '2-digit'
-                                                                })} • {aula.modalidade}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                ))
-                                            )}
-                                        </div>
-                                    )}
+                                <div className="h-42"> {/* 👈 ALTURA FIXA */}
+                                    <StatCard
+                                        label={role === 'ALUNO' ? 'Total Investido' : 'Professores Disponíveis'}
+                                        value={role === 'ALUNO' ? `R$ ${totalGasto.toFixed(2)}` : professores.filter(p => p.disponibilidade === 'DISPONIVEL').length.toString()}
+                                        icon={role === 'ALUNO' ? DollarSign : Users}
+                                        color="green"
+                                    />
                                 </div>
                             </div>
 
-                            {/* Sidebar direita */}
-                            <div className="space-y-6">
-                                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                                    <h3 className="font-semibold text-gray-800 mb-4">Próximas Aulas</h3>
-                                    {proximasAulas.length === 0 ? (
-                                        <p className="text-gray-500 text-sm">Nenhuma aula agendada</p>
+                            {/* Próximas Aulas - Altura flexível */}
+                            <div className="flex flex-col"> {/* 👈 FLEX COLUMN PARA CRESCER NATURALMENTE */}
+                                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex-1">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-lg font-semibold text-gray-800">Próximas Aulas</h3>
+                                        <Clock className="w-5 h-5 text-gray-400" />
+                                    </div>
+
+                                    {loadingAulas ? (
+                                        <LoadingSpinner text="Carregando..." size="sm" />
+                                    ) : proximasAulas.length === 0 ? (
+                                        <div className="text-center py-6">
+                                            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                                <BookOpen className="w-6 h-6 text-gray-400" />
+                                            </div>
+                                            <p className="text-gray-500 text-sm">
+                                                {role === 'ALUNO' ? 'Nenhuma aula agendada' : 'Nenhuma aula marcada'}
+                                            </p>
+                                        </div>
                                     ) : (
                                         <div className="space-y-3">
                                             {proximasAulas.map((aula) => (
-                                                <div key={aula.id} className="flex items-center space-x-3">
+                                                <div key={aula.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                                                     <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                                        <Clock className="w-5 h-5 text-blue-600" />
+                                                        {aula.modalidade?.toLowerCase() === 'online' ? (
+                                                            <Video className="w-5 h-5 text-blue-600" />
+                                                        ) : (
+                                                            <MapPin className="w-5 h-5 text-blue-600" />
+                                                        )}
                                                     </div>
-                                                    <div className="flex-1">
-                                                        <p className="text-sm font-medium text-gray-800">
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-medium text-gray-800 truncate">
                                                             {role === 'ALUNO' ? aula.professor.nome : aula.aluno.nome}
                                                         </p>
                                                         <p className="text-xs text-gray-500">
-                                                            {new Date(aula.dataHora).toLocaleDateString('pt-BR')} às{' '}
-                                                            {new Date(aula.dataHora).toLocaleTimeString('pt-BR', {
-                                                                hour: '2-digit',
-                                                                minute: '2-digit'
-                                                            })}
+                                                            {new Date(aula.dataHora).toLocaleDateString('pt-BR')} às {' '}
+                                                            {new Date(aula.dataHora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                                                         </p>
                                                     </div>
+                                                    <ChevronRight className="w-4 h-4 text-gray-400" />
                                                 </div>
                                             ))}
                                         </div>
                                     )}
-                                </div>
-
-                                {/* Avisos */}
-                                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                                    <h3 className="font-semibold text-gray-800 mb-4">Avisos</h3>
-                                    <div className="space-y-4">
-                                        {role === 'ALUNO' && (
-                                            <div className="border-l-4 border-blue-500 pl-4">
-                                                <h4 className="font-medium text-gray-800 text-sm">Professores Disponíveis</h4>
-                                                <p className="text-xs text-gray-500 mt-1">
-                                                    {professores.length} professores disponíveis para agendamento.
-                                                </p>
-                                            </div>
-                                        )}
-
-                                        <div className="border-l-4 border-green-500 pl-4">
-                                            <h4 className="font-medium text-gray-800 text-sm">
-                                                {role === 'ALUNO' ? 'Próximas Avaliações' : 'Sistema Funcionando'}
-                                            </h4>
-                                            <p className="text-xs text-gray-500 mt-1">
-                                                {role === 'ALUNO'
-                                                    ? 'Lembre-se de revisar o conteúdo antes das aulas.'
-                                                    : 'Todas as funcionalidades estão operando normalmente.'
-                                                }
-                                            </p>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
                     </>
                 )}
 
-                {/* SEÇÃO MINHAS AULAS */}
+                {/* 🎯 SEÇÃO MINHAS AULAS - ATUALIZADA COM AULACARD */}
                 {activeMenu === 'classes' && (
                     <div className="p-6">
                         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
@@ -318,51 +234,12 @@ const Dashboard: React.FC = () => {
                             ) : (
                                 <div className="space-y-4">
                                     {aulas.map((aula) => (
-                                        <div key={aula.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center space-x-4">
-                                                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                                                        {aula.modalidade === 'online' ?
-                                                            <Video className="w-6 h-6 text-blue-600" /> :
-                                                            <MapPin className="w-6 h-6 text-blue-600" />
-                                                        }
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="font-medium text-gray-800">
-                                                            {role === 'ALUNO' ?
-                                                                `${aula.professor.nome} - ${aula.professor.materia || 'Matéria não definida'}` :
-                                                                `Aula com ${aula.aluno.nome}`
-                                                            }
-                                                        </h3>
-                                                        <p className="text-sm text-gray-500">
-                                                            {new Date(aula.dataHora).toLocaleDateString('pt-BR', {
-                                                                weekday: 'long',
-                                                                year: 'numeric',
-                                                                month: 'long',
-                                                                day: 'numeric'
-                                                            })} às {new Date(aula.dataHora).toLocaleTimeString('pt-BR', {
-                                                            hour: '2-digit',
-                                                            minute: '2-digit'
-                                                        })}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <div className="text-right">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              aula.modalidade === 'online'
-                                  ? 'bg-green-100 text-green-800'
-                                  : 'bg-blue-100 text-blue-800'
-                          }`}>
-                            {aula.modalidade === 'online' ? 'Online' : 'Presencial'}
-                          </span>
-                                                    {role === 'ALUNO' && aula.professor.valorHora && (
-                                                        <p className="text-sm text-gray-600 mt-1">
-                                                            R$ {aula.professor.valorHora.toFixed(2)}
-                                                        </p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <AulaCard
+                                            key={aula.id}
+                                            aula={aula}
+                                            userRole={role as 'ALUNO' | 'PROFESSOR'}
+                                            onCancelSuccess={handleCancelSuccess}
+                                        />
                                     ))}
                                 </div>
                             )}
@@ -378,36 +255,42 @@ const Dashboard: React.FC = () => {
 
                             {loadingProfs ? (
                                 <LoadingSpinner text="Carregando professores..." />
+                            ) : professores.length === 0 ? (
+                                <EmptyState
+                                    icon={Users}
+                                    title="Nenhum professor encontrado"
+                                    description="Aguarde novos professores se cadastrarem"
+                                />
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {professores.map((professor) => (
-                                        <div key={professor.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                                        <div key={professor.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                                             <div className="flex items-center space-x-3 mb-4">
                                                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                                                     <User className="w-6 h-6 text-blue-600" />
                                                 </div>
                                                 <div>
-                                                    <h3 className="font-medium text-gray-800">{professor.nome}</h3>
-                                                    <p className="text-sm text-gray-500">{professor.materia || 'Matéria não definida'}</p>
+                                                    <h3 className="font-semibold text-gray-800">{professor.nome}</h3>
+                                                    <p className="text-sm text-gray-600">{professor.materia || 'Matéria não informada'}</p>
                                                 </div>
                                             </div>
 
                                             <div className="space-y-2 mb-4">
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-sm text-gray-600">Valor/hora:</span>
-                                                    <span className="text-sm font-medium text-green-600">
-                            R$ {professor.valorHora?.toFixed(2) || 'N/A'}
-                          </span>
+                                                <div className="flex justify-between text-sm">
+                                                    <span className="text-gray-600">Valor/hora:</span>
+                                                    <span className="font-medium text-gray-800">
+                                                        {professor.valorHora ? `R$ ${professor.valorHora.toFixed(2)}` : 'Não informado'}
+                                                    </span>
                                                 </div>
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-sm text-gray-600">Status:</span>
-                                                    <span className={`text-xs px-2 py-1 rounded-full ${
+                                                <div className="flex justify-between text-sm">
+                                                    <span className="text-gray-600">Status:</span>
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                                                         professor.disponibilidade === 'DISPONIVEL'
                                                             ? 'bg-green-100 text-green-800'
                                                             : 'bg-gray-100 text-gray-800'
                                                     }`}>
-                            {professor.disponibilidade === 'DISPONIVEL' ? 'Disponível' : 'Indisponível'}
-                          </span>
+                                                        {professor.disponibilidade === 'DISPONIVEL' ? 'Disponível' : 'Indisponível'}
+                                                    </span>
                                                 </div>
                                             </div>
 
@@ -440,21 +323,9 @@ const Dashboard: React.FC = () => {
                     </div>
                 )}
 
-                {/* 🎯 SEÇÃO PERFIL - SUBSTITUIR O PLACEHOLDER! */}
+                {/* SEÇÃO PERFIL */}
                 {activeMenu === 'profile' && (
-                    <ProfileSection
-                        role={role}
-                        userName={userName}
-                        userId={userId}
-                        aulas={aulas}
-                        professores={professores}
-                        totalGasto={totalGasto}
-                        onLogout={handleLogout}
-                        onEditProfile={() => {
-                            console.log('Editar perfil clicado')
-                            // Implementar lógica de edição se necessário
-                        }}
-                    />
+                    <ProfileSection onLogout={handleLogout} />
                 )}
 
                 {/* MODAL DE AGENDAMENTO */}
@@ -484,19 +355,24 @@ const Dashboard: React.FC = () => {
                                 <div className="flex justify-end space-x-2 mt-6">
                                     <button
                                         onClick={() => setShowModal(false)}
-                                        className="px-4 py-2 rounded-md bg-gray-300 hover:bg-gray-400 transition"
+                                        className="px-4 py-2 text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
                                     >
                                         Cancelar
                                     </button>
                                     <button
                                         onClick={() => {
-                                            const dataHora = (document.getElementById('dataHora') as HTMLInputElement).value
-                                            const modalidade = (document.getElementById('modalidade') as HTMLSelectElement).value
-                                            handleScheduleSubmit(dataHora, modalidade)
+                                            const dataHoraInput = document.getElementById('dataHora') as HTMLInputElement
+                                            const modalidadeInput = document.getElementById('modalidade') as HTMLSelectElement
+
+                                            if (dataHoraInput.value && modalidadeInput.value) {
+                                                handleScheduleSubmit(dataHoraInput.value, modalidadeInput.value)
+                                            } else {
+                                                alert('Preencha todos os campos')
+                                            }
                                         }}
-                                        className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
+                                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                                     >
-                                        Confirmar
+                                        Agendar
                                     </button>
                                 </div>
                             </div>

@@ -1,3 +1,4 @@
+// backend/src/main/java/com/example/backend/controller/AulaController.java
 package com.example.backend.controller;
 
 import com.example.backend.domain.Aula;
@@ -99,6 +100,55 @@ public class AulaController {
         Professor p = optP.get();
         List<Aula> lista = aulaService.buscarAulasPorProfessorId(p.getId());
         return ResponseEntity.ok(lista);
+    }
+
+    /**
+     * DELETE /api/aulas/{id}
+     * Cancela uma aula - tanto aluno quanto professor podem cancelar
+     */
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ALUNO') or hasRole('PROFESSOR')")
+    public ResponseEntity<?> cancelarAula(@PathVariable Long id, Authentication authentication) {
+        try {
+            // Busca a aula
+            Optional<Aula> optAula = aulaService.buscarPorId(id);
+            if (optAula.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Aula aula = optAula.get();
+            String emailLogado = authentication.getName();
+            Usuario usuarioLogado = usuarioRepository.findByEmail(emailLogado);
+
+            if (usuarioLogado == null) {
+                return ResponseEntity.status(401).body("Usuário não encontrado");
+            }
+
+            // Verifica se o usuário tem permissão para cancelar esta aula
+            boolean podeCanselar = false;
+
+            if ("ALUNO".equals(usuarioLogado.getRole())) {
+                // Aluno pode cancelar se for o aluno da aula
+                podeCanselar = aula.getAluno().getId().equals(usuarioLogado.getId());
+            } else if ("PROFESSOR".equals(usuarioLogado.getRole())) {
+                // Professor pode cancelar se for o professor da aula
+                Optional<Professor> optProfessor = professorRepository.findByUsuarioId(usuarioLogado.getId());
+                if (optProfessor.isPresent()) {
+                    podeCanselar = aula.getProfessor().getId().equals(optProfessor.get().getId());
+                }
+            }
+
+            if (!podeCanselar) {
+                return ResponseEntity.status(403).body("Você não tem permissão para cancelar esta aula");
+            }
+
+            // Cancela a aula
+            aulaService.cancelarAula(id);
+            return ResponseEntity.noContent().build();
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Erro ao cancelar aula: " + e.getMessage());
+        }
     }
 
     // DTO interno para receber o JSON do POST /api/aulas

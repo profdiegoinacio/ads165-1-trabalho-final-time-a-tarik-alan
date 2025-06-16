@@ -1,3 +1,4 @@
+// backend/src/main/java/com/example/backend/service/UsuarioService.java
 package com.example.backend.service;
 
 import com.example.backend.domain.Usuario;
@@ -36,6 +37,28 @@ public class UsuarioService {
         existente.setSenha(u.getSenha());
 
         // 3) Salva a mesma instância (faz UPDATE)
+        return repo.save(existente);
+    }
+
+    /**
+     * NOVO: Busca usuário por email
+     */
+    public Usuario buscarPorEmail(String email) {
+        return repo.findByEmail(email);
+    }
+
+    /**
+     * NOVO: Atualiza apenas nome e email (sem mexer na senha)
+     */
+    public Usuario atualizarPerfil(Long id, String novoNome, String novoEmail) {
+        Usuario existente = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado para id: " + id));
+
+        // Atualiza apenas nome e email, mantém senha e role originais
+        existente.setNome(novoNome);
+        existente.setEmail(novoEmail);
+        // NÃO mexe na senha nem no role
+
         return repo.save(existente);
     }
 

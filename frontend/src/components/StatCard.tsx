@@ -1,10 +1,10 @@
-// components/StatCard.tsx
 import React from 'react'
 
 type StatCardProps = {
     icon: React.ComponentType<{ className?: string }>
     value: string | number
     label: string
+    subtitle?: string
     color?: 'blue' | 'green' | 'purple' | 'red' | 'yellow' | 'indigo' | 'pink'
     trend?: {
         value: number
@@ -17,6 +17,7 @@ const StatCard: React.FC<StatCardProps> = ({
                                                icon: Icon,
                                                value,
                                                label,
+                                               subtitle,
                                                color = "blue",
                                                trend,
                                                onClick
@@ -32,8 +33,8 @@ const StatCard: React.FC<StatCardProps> = ({
     }
 
     const cardClasses = onClick
-        ? 'bg-white rounded-xl p-6 shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow'
-        : 'bg-white rounded-xl p-6 shadow-sm border border-gray-100'
+        ? 'bg-white rounded-xl p-6 shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow h-full'
+        : 'bg-white rounded-xl p-6 shadow-sm border border-gray-100 h-full'
 
     return (
         <div className={cardClasses} onClick={onClick}>
@@ -56,6 +57,9 @@ const StatCard: React.FC<StatCardProps> = ({
                     {typeof value === 'number' ? value.toLocaleString() : value}
                 </h3>
                 <p className="text-sm text-gray-500">{label}</p>
+                {subtitle && (
+                    <p className="text-xs text-gray-400">{subtitle}</p>
+                )}
             </div>
         </div>
     )
