@@ -1,6 +1,6 @@
-// components/Header.tsx
 import React, { useState } from 'react'
-import { Bell, User, ChevronDown, Settings, LogOut } from 'lucide-react'
+import { User, ChevronDown, Settings, LogOut } from 'lucide-react'
+import NotificationDropdown from './NotificationDropdown'
 
 type MenuId = 'dashboard' | 'classes' | 'professors' | 'schedule' | 'profile'
 
@@ -58,14 +58,8 @@ const Header: React.FC<HeaderProps> = ({
 
                 {/* Right side - Notifications and user menu */}
                 <div className="flex items-center space-x-4">
-                    {/* Notifications */}
-                    <div className="relative">
-                        <button className="p-2 text-gray-600 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors">
-                            <Bell className="w-5 h-5" />
-                            {/* Notification badge */}
-                            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs"></span>
-                        </button>
-                    </div>
+                    {/* 👈 COMPONENTE DE NOTIFICAÇÕES */}
+                    <NotificationDropdown />
 
                     {/* User Menu */}
                     <div className="relative">
@@ -100,35 +94,40 @@ const Header: React.FC<HeaderProps> = ({
                                         onProfileClick?.()
                                         setShowUserMenu(false)
                                     }}
-                                    className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                                >
+                                    <User className="w-4 h-4" />
+                                    <span>Meu Perfil</span>
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        // Configurações
+                                        setShowUserMenu(false)
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
                                 >
                                     <Settings className="w-4 h-4" />
                                     <span>Configurações</span>
                                 </button>
 
-                                <button
-                                    onClick={() => {
-                                        onLogout?.()
-                                        setShowUserMenu(false)
-                                    }}
-                                    className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                                >
-                                    <LogOut className="w-4 h-4" />
-                                    <span>Sair</span>
-                                </button>
+                                <div className="border-t border-gray-100 mt-1 pt-1">
+                                    <button
+                                        onClick={() => {
+                                            onLogout?.()
+                                            setShowUserMenu(false)
+                                        }}
+                                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                                    >
+                                        <LogOut className="w-4 h-4" />
+                                        <span>Sair</span>
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </div>
                 </div>
             </div>
-
-            {/* Click outside to close dropdown */}
-            {showUserMenu && (
-                <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setShowUserMenu(false)}
-                ></div>
-            )}
         </div>
     )
 }

@@ -1,4 +1,3 @@
-// backend/src/main/java/com/example/backend/service/AulaService.java
 package com.example.backend.service;
 
 import com.example.backend.domain.Aula;

@@ -117,7 +117,7 @@ const Dashboard: React.FC = () => {
             />
 
             <div className="flex-1 overflow-auto">
-                <Header activeMenu={activeMenu} role={role} userName={userName} />
+                <Header activeMenu={activeMenu} role={role} userName={userName} onLogout={handleLogout} />
 
                 {/* DASHBOARD */}
                 {activeMenu === 'dashboard' && (

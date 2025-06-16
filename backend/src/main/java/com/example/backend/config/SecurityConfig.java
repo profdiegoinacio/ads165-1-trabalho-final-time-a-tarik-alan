@@ -1,3 +1,4 @@
+// backend/src/main/java/com/example/backend/config/SecurityConfig.java
 package com.example.backend.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,22 +33,33 @@ public class SecurityConfig {
                 .cors(cors -> {})
                 // 3) Define permissões de acesso para cada rota:
                 .authorizeHttpRequests(auth -> auth
+                        // 👈 ENDPOINTS DE AULAS
                         .requestMatchers(HttpMethod.POST, "/api/aulas").hasRole("ALUNO")
                         .requestMatchers(HttpMethod.GET,  "/api/aulas/aluno").hasRole("ALUNO")
                         .requestMatchers(HttpMethod.GET,  "/api/aulas/professor").hasRole("PROFESSOR")
+                        .requestMatchers(HttpMethod.DELETE, "/api/aulas/**").authenticated()
+
+                        // 👈 ENDPOINTS DE NOTIFICAÇÕES - NOVO
+                        .requestMatchers(HttpMethod.GET, "/api/notificacoes/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/notificacoes/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/notificacoes/**").authenticated()
+
                         // Liberar endpoints de login e registro
                         .requestMatchers("/h2-console/**", "/api/auth/**").permitAll()
 
-
                         // Somente ALUNO pode ver lista de professores disponíveis
                         .requestMatchers(HttpMethod.GET, "/api/professores/disponiveis").hasRole("ALUNO")
-
 
                         // Somente PROFESSOR pode criar, atualizar e excluir professor
                         .requestMatchers("/api/professores/**").hasRole("PROFESSOR")
 
                         // Qualquer usuário autenticado (ALUNO ou PROFESSOR) pode listar TODOS os professores:
                         .requestMatchers(HttpMethod.GET, "/api/professores").authenticated()
+
+                        // 👈 ENDPOINTS DE USUÁRIOS
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/usuarios/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/usuarios/**").authenticated()
 
                         // Qualquer outra rota requer autenticação
                         .anyRequest().authenticated()

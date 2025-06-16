@@ -1,4 +1,3 @@
-// backend/src/main/java/com/example/backend/controller/AulaController.java
 package com.example.backend.controller;
 
 import com.example.backend.domain.Aula;
@@ -7,6 +6,7 @@ import com.example.backend.domain.Usuario;
 import com.example.backend.repository.ProfessorRepository;
 import com.example.backend.repository.UsuarioRepository;
 import com.example.backend.service.AulaService;
+import com.example.backend.service.NotificacaoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,6 +32,9 @@ public class AulaController {
 
     @Autowired
     private ProfessorRepository professorRepository;
+
+    @Autowired
+    private NotificacaoService notificacaoService; // 👈 NOVO
 
     /**
      * POST /api/aulas
@@ -63,6 +67,21 @@ public class AulaController {
         novaAula.setModalidade(body.getModalidade());
 
         Aula salva = aulaService.agendarAula(novaAula);
+
+        // 👈 CRIAR NOTIFICAÇÃO PARA O PROFESSOR
+        try {
+            String dataHoraFormatada = salva.getDataHora().format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'às' HH:mm"));
+            notificacaoService.notificarAulaAgendada(
+                    professor.getUsuario().getId(),
+                    aluno.getNome(),
+                    dataHoraFormatada,
+                    salva.getId()
+            );
+        } catch (Exception e) {
+            // Log do erro, mas não falha o agendamento
+            System.err.println("Erro ao criar notificação: " + e.getMessage());
+        }
+
         URI uri = URI.create("/api/aulas/" + salva.getId());
         return ResponseEntity.created(uri).body(salva);
     }
@@ -126,20 +145,46 @@ public class AulaController {
 
             // Verifica se o usuário tem permissão para cancelar esta aula
             boolean podeCanselar = false;
+            Usuario usuarioParaNotificar = null;
+            String tipoUsuarioQueCancelou = "";
 
             if ("ALUNO".equals(usuarioLogado.getRole())) {
                 // Aluno pode cancelar se for o aluno da aula
                 podeCanselar = aula.getAluno().getId().equals(usuarioLogado.getId());
+                if (podeCanselar) {
+                    usuarioParaNotificar = aula.getProfessor().getUsuario(); // Notifica o professor
+                    tipoUsuarioQueCancelou = "aluno";
+                }
             } else if ("PROFESSOR".equals(usuarioLogado.getRole())) {
                 // Professor pode cancelar se for o professor da aula
                 Optional<Professor> optProfessor = professorRepository.findByUsuarioId(usuarioLogado.getId());
                 if (optProfessor.isPresent()) {
                     podeCanselar = aula.getProfessor().getId().equals(optProfessor.get().getId());
+                    if (podeCanselar) {
+                        usuarioParaNotificar = aula.getAluno(); // Notifica o aluno
+                        tipoUsuarioQueCancelou = "professor";
+                    }
                 }
             }
 
             if (!podeCanselar) {
                 return ResponseEntity.status(403).body("Você não tem permissão para cancelar esta aula");
+            }
+
+            // 👈 CRIAR NOTIFICAÇÃO ANTES DE CANCELAR
+            try {
+                if (usuarioParaNotificar != null) {
+                    String dataHoraFormatada = aula.getDataHora().format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'às' HH:mm"));
+                    notificacaoService.notificarAulaCancelada(
+                            usuarioParaNotificar.getId(),
+                            usuarioLogado.getNome(),
+                            dataHoraFormatada,
+                            tipoUsuarioQueCancelou
+                    );
+                }
+            } catch (Exception e) {
+                // Log do erro, mas não falha o cancelamento
+                System.err.println("Erro ao criar notificação de cancelamento: " + e.getMessage());
             }
 
             // Cancela a aula
