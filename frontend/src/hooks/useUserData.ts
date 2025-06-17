@@ -1,4 +1,3 @@
-// hooks/useUserData.ts
 import { useState, useEffect } from 'react'
 import {UseUserDataReturn} from '../types'
 

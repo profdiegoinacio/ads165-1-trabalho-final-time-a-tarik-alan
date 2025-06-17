@@ -1,4 +1,3 @@
-// frontend/src/app/dashboard/page.tsx - Seção das Aulas Marcadas Atualizada
 'use client'
 
 import React, { useState } from 'react'
@@ -19,7 +18,6 @@ import { useUserData } from '../../hooks/useUserData'
 import { useProfessores } from '../../hooks/useProfessores'
 import { useAulas } from '../../hooks/useAulas'
 
-// Imports dos componentes
 import Sidebar from '../../components/Sidebar'
 import Header from '../../components/Header'
 import LoadingSpinner from '../../components/LoadingSpinner'
@@ -119,10 +117,10 @@ const Dashboard: React.FC = () => {
             <div className="flex-1 overflow-auto">
                 <Header activeMenu={activeMenu} role={role} userName={userName} onLogout={handleLogout} />
 
-                {/* DASHBOARD */}
+
                 {activeMenu === 'dashboard' && (
                     <>
-                        {/* Welcome Banner */}
+
                         <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white mx-6 mt-6 rounded-2xl p-6 relative overflow-hidden">
                             <div className="relative z-10">
                                 <p className="text-blue-200 text-sm mb-2">
@@ -145,9 +143,9 @@ const Dashboard: React.FC = () => {
                         </div>
 
                         <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            {/* Stats Cards - Altura fixa */}
+
                             <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="h-42"> {/* 👈 ALTURA FIXA */}
+                                <div className="h-42">
                                     <StatCard
                                         label={role === 'ALUNO' ? 'Aulas Agendadas' : 'Aulas Marcadas'}
                                         value={aulas.length.toString()}
@@ -155,7 +153,7 @@ const Dashboard: React.FC = () => {
                                         color="blue"
                                     />
                                 </div>
-                                <div className="h-42"> {/* 👈 ALTURA FIXA */}
+                                <div className="h-42">
                                     <StatCard
                                         label={role === 'ALUNO' ? 'Total Investido' : 'Professores Disponíveis'}
                                         value={role === 'ALUNO' ? `R$ ${totalGasto.toFixed(2)}` : professores.filter(p => p.disponibilidade === 'DISPONIVEL').length.toString()}
@@ -165,8 +163,7 @@ const Dashboard: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Próximas Aulas - Altura flexível */}
-                            <div className="flex flex-col"> {/* 👈 FLEX COLUMN PARA CRESCER NATURALMENTE */}
+                            <div className="flex flex-col">
                                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex-1">
                                     <div className="flex items-center justify-between mb-4">
                                         <h3 className="text-lg font-semibold text-gray-800">Próximas Aulas</h3>
@@ -215,7 +212,6 @@ const Dashboard: React.FC = () => {
                     </>
                 )}
 
-                {/* 🎯 SEÇÃO MINHAS AULAS - ATUALIZADA COM AULACARD */}
                 {activeMenu === 'classes' && (
                     <div className="p-6">
                         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
@@ -247,7 +243,6 @@ const Dashboard: React.FC = () => {
                     </div>
                 )}
 
-                {/* SEÇÃO PROFESSORES */}
                 {activeMenu === 'professors' && role === 'ALUNO' && (
                     <div className="p-6">
                         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
@@ -313,7 +308,6 @@ const Dashboard: React.FC = () => {
                     </div>
                 )}
 
-                {/* SEÇÃO CALENDÁRIO */}
                 {activeMenu === 'schedule' && (
                     <div className="p-6">
                         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
@@ -323,12 +317,10 @@ const Dashboard: React.FC = () => {
                     </div>
                 )}
 
-                {/* SEÇÃO PERFIL */}
                 {activeMenu === 'profile' && (
                     <ProfileSection onLogout={handleLogout} />
                 )}
 
-                {/* MODAL DE AGENDAMENTO */}
                 {showModal && selectedProfessor && (
                     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                         <div className="bg-white rounded-lg p-6 w-full max-w-md">

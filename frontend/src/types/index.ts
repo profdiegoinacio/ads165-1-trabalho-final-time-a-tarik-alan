@@ -1,4 +1,3 @@
-// frontend/src/types/index.ts
 export type MenuId = 'dashboard' | 'classes' | 'professors' | 'schedule' | 'profile'
 
 export interface Professor {

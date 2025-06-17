@@ -9,7 +9,6 @@ type Professor = {
     materia: string | null
     valorHora: number | null
     disponibilidade: string
-    // não incluí "usuario", pois o backend faz @JsonBackReference, então o JSON não virá com this field
 }
 
 export default function ConfigProfessorPage() {

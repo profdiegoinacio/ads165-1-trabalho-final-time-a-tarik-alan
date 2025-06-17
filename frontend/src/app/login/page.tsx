@@ -1,6 +1,5 @@
 'use client'
 import React, { useState, FormEvent } from 'react'
-import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
@@ -35,7 +34,6 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100 relative">
-            {/* Logo no canto superior esquerdo */}
             <div className="logo">
 
 

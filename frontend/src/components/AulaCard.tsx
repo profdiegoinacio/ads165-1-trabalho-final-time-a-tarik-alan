@@ -1,4 +1,3 @@
-// frontend/src/components/AulaCard.tsx
 'use client'
 
 import React, { useState } from 'react'

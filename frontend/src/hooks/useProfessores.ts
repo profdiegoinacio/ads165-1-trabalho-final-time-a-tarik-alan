@@ -1,4 +1,3 @@
-// hooks/useProfessores.ts
 import { useState, useEffect } from 'react'
 import type { Professor } from '../types'
 

@@ -19,12 +19,10 @@ export default function ProfessoresLayout({
 
     return (
         <div className="flex min-h-screen">
-            {/* Sidebar ou Nav lateral */}
             <aside className="w-64 bg-gray-100 p-4">
                 <nav className="space-y-2">
 
 
-                    {/* Só exibe se role === "PROFESSOR" */}
                     {role === 'PROFESSOR' && (
                         <Link
                             href="/professores/config"
@@ -38,7 +36,6 @@ export default function ProfessoresLayout({
                 </nav>
             </aside>
 
-            {/* Conteúdo principal */}
             <main className="flex-1 bg-white">{children}</main>
         </div>
     )

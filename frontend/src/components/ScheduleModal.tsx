@@ -1,4 +1,3 @@
-// components/ScheduleModal.tsx
 import React, { useState } from 'react'
 import { Professor } from './ProfessorCard'
 

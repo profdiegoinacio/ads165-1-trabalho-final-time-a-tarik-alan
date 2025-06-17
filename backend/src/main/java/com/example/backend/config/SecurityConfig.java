@@ -33,13 +33,13 @@ public class SecurityConfig {
                 .cors(cors -> {})
                 // 3) Define permissões de acesso para cada rota:
                 .authorizeHttpRequests(auth -> auth
-                        // 👈 ENDPOINTS DE AULAS
+                        // ENDPOINTS DE AULAS
                         .requestMatchers(HttpMethod.POST, "/api/aulas").hasRole("ALUNO")
                         .requestMatchers(HttpMethod.GET,  "/api/aulas/aluno").hasRole("ALUNO")
                         .requestMatchers(HttpMethod.GET,  "/api/aulas/professor").hasRole("PROFESSOR")
                         .requestMatchers(HttpMethod.DELETE, "/api/aulas/**").authenticated()
 
-                        // 👈 ENDPOINTS DE NOTIFICAÇÕES - NOVO
+                        // ENDPOINTS DE NOTIFICAÇÕES - NOVO
                         .requestMatchers(HttpMethod.GET, "/api/notificacoes/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/notificacoes/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/notificacoes/**").authenticated()
@@ -56,7 +56,7 @@ public class SecurityConfig {
                         // Qualquer usuário autenticado (ALUNO ou PROFESSOR) pode listar TODOS os professores:
                         .requestMatchers(HttpMethod.GET, "/api/professores").authenticated()
 
-                        // 👈 ENDPOINTS DE USUÁRIOS
+                        // ENDPOINTS DE USUÁRIOS
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/usuarios/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/usuarios/**").authenticated()
@@ -89,7 +89,7 @@ public class SecurityConfig {
         };
     }
 
-    // Expõe AuthenticationManager para que possa ser injetado se necessário
+    // Expõe AuthenticationManager para poder ser injetado se necessário
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration authConfig

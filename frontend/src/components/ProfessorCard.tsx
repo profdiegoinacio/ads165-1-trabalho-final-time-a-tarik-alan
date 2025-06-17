@@ -1,4 +1,3 @@
-// components/ProfessorCard.tsx
 import React from 'react'
 
 export type Professor = {

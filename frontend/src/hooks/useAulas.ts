@@ -1,4 +1,3 @@
-// hooks/useAulas.ts
 import { useState, useEffect } from 'react'
 import type { Aula } from '../types'
 
